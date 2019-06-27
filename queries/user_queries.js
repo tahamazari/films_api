@@ -1,5 +1,6 @@
 const Pool = require('pg').Pool
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -11,27 +12,45 @@ const pool = new Pool({
 
 
 //User functions
-const valid_user = (user) => {
+const valid_user_sign_up = (user) => {
     if((typeof(user.name) == "string" && user.name.trim() != "") && (typeof(user.email) == "string" && user.email.trim() != "")
      && (typeof(user.password) == "string" && user.password.trim() != "")){
       return user
     }
     else return false
-  }
+}
+
+const valid_user_login = (user) => {
+    if((typeof(user.email) == "string" && user.email.trim() != "")
+     && (typeof(user.password) == "string" && user.password.trim() != "")){
+      return user
+    }
+    else return false
+}
   
 
 
 const get_users = (request, response) => {
-    pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
-      if (error) {
-        throw error
-      }
-      response.status(200).json(results.rows)
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
+        }
+        else {
+            pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
+                if (error) {
+                  throw error
+                }
+                response.status(200).json({
+                    rows: results.rows, 
+                    auth_data
+                })
+            })
+        }
     })
 }
 
 const sign_up = (request, response) => {
-    if(valid_user(request.body)){
+    if(valid_user_sign_up(request.body)){
         pool.query('SELECT COUNT(*) AS count FROM users WHERE email = $1', 
             [request.body.email], function(error, results){
                 if (error) {
@@ -91,10 +110,54 @@ const get_user_by_id = (request, response) => {
     })
 }
 
+const login = (request, response) => {
+    if(valid_user_login(request.body)){
+        pool.query('SELECT * FROM users WHERE email = $1', [request.body.email], (error, results) => {
+            if (error) {
+              throw error
+            }
+            else {
+                if(results.rows.length != 0){
+                    bcrypt.compare(request.body.password, results.rows[0].password)
+                    .then(hash_response => {
+                        if(hash_response){
+                            response.cookie('user_id', results.rows[0].id, {
+                                httpOnly: true,
+                                secure: true,
+                                signed: true
+                            })
+
+                            jwt.sign({user: results.rows[0]}, 'tintash', (jwt_error, token) => {
+                                response.status(200).json({
+                                    token: token
+                                })
+                            })
+                            // console.log(response.cookie('user_id', results.rows[0].id))
+                            // console.log(hash_response, results.rows[0].password, request.body.password)
+                            // response.status(200).json(results.rows[0])
+                        }
+                        else {
+                            console.log(hash_response, results.rows[0].password, request.body.password)
+                            response.status(400).json("Wrong password, please try again!")
+                        }
+                    })
+                }
+                else {
+                    response.status(200).send("Sorry, user not found")
+                }
+            }
+          })
+    }
+    else {
+        response.status(400).send("Invalid login credentials")
+    }
+}
+
 module.exports = {
     get_users,
     sign_up,
     update_user,
-    get_user_by_id
+    get_user_by_id,
+    login
   }
 

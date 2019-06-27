@@ -2,7 +2,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
-const users_router = require('./routes/routes.js')
+const users_router = require('./routes/user_routes.js')
+const films_router = require('./routes/film_routes.js')
 
 app.use(bodyParser.json())
 app.use(
@@ -10,9 +11,9 @@ app.use(
     extended: true,
   })
 )
+
 app.use(users_router)
-
-
+app.use(films_router)
 
 
 app.get('/', (request, response) => {

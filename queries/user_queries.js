@@ -84,29 +84,67 @@ const sign_up = (request, response) => {
 }
 
 const update_user = (request, response) => {
-    const id = parseInt(request.params.id)
-    const { name, email } = request.body
-  
-    pool.query(
-      'UPDATE users SET name = $1, email = $2 WHERE id = $3',
-      [name, email, id],
-      (error, results) => {
-        if (error) {
-          throw error
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
         }
-        response.status(200).send(`User modified with ID: ${id}`)
-      }
-    )
+        else {
+            const id = parseInt(request.params.id)
+            const { name, email } = request.body
+          
+            pool.query(
+              'UPDATE users SET name = $1, email = $2 WHERE id = $3',
+              [name, email, id],
+              (error, results) => {
+                if (error) {
+                  throw error
+                }
+                response.status(200).send(`User modified with ID: ${id}`)
+              }
+            )
+        }           
+    })
+}
+
+const change_password = (request, response) => {
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
+        }
+        else {
+            const id = parseInt(request.params.id)
+            const { password } = request.body
+        
+            bcrypt.hash(password, 10)
+            .then((hash) => {
+                pool.query('UPDATE users SET password = $1 WHERE id = $2', [hash, id], (error, response) => {
+                    if(error){
+                        throw error
+                    }
+                    else {
+                        response.status(201).send('User password updated with ID: ' + id)
+                    }
+                })
+            })
+        }         
+    })
 }
 
 const get_user_by_id = (request, response) => {
-    const id = parseInt(request.params.id)
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
+        }
+        else {
+            const id = parseInt(request.params.id)
   
-    pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
-      if (error) {
-        throw error
-      }
-      response.status(200).json(results.rows)
+            pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
+              if (error) {
+                throw error
+              }
+              response.status(200).json(results.rows)
+            })
+        }
     })
 }
 
@@ -128,6 +166,9 @@ const login = (request, response) => {
                             })
 
                             jwt.sign({user: results.rows[0]}, 'tintash', (jwt_error, token) => {
+                                if(jwt_error) {
+                                    throw jwt_error
+                                }
                                 response.status(200).json({
                                     token: token
                                 })
@@ -158,6 +199,7 @@ module.exports = {
     sign_up,
     update_user,
     get_user_by_id,
-    login
+    login,
+    change_password
   }
 

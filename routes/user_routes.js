@@ -25,9 +25,10 @@ users_router.get('/api/accounts', verify_token, users_table.get_users)
 //sign up
 users_router.post('/api/accounts/sign_up', users_table.sign_up)
 
-users_router.put('/api/accounts/update/:id', users_table.update_user)
+users_router.put('/api/accounts/update/:id', verify_token, users_table.update_user)
+users_router.put('/api/accounts/change_password/:id', verify_token, users_table.change_password)
 
-users_router.get('/api/accounts/:id', users_table.get_user_by_id)
+users_router.get('/api/accounts/:id', verify_token, users_table.get_user_by_id)
 
 users_router.post('/api/accounts/login', users_table.login)
 

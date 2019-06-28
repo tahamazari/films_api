@@ -5,6 +5,7 @@ const port = 3000
 var cookieParser = require('cookie-parser')
 const users_router = require('./routes/user_routes.js')
 const films_router = require('./routes/film_routes.js')
+const ratings_router = require('./routes/rating_routes.js')
 
 app.use(bodyParser.json())
 app.use(
@@ -15,6 +16,7 @@ app.use(
 app.use(cookieParser("tintash"))
 app.use(users_router)
 app.use(films_router)
+app.use(ratings_router)
 
 
 app.get('/', (request, response) => {

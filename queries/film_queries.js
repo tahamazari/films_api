@@ -72,5 +72,5 @@ module.exports = {
     create_film,
     delete_film,
     update_film
-  }
+}
 

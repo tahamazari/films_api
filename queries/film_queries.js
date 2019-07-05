@@ -8,6 +8,14 @@ const pool = new Pool({
   port: 5432,
 })
 
+const valid_film = (film) => {
+    if((typeof(film.title) == "string" && film.title.trim() != "") && (typeof(film.year) == "string" && film.year.trim() != "")
+     && (typeof(film.description) == "string" && film.description.trim() != "")){
+      return user
+    }
+    else return false
+}
+
 const get_films = (request, response) => {
     jwt.verify(request.token, 'tintash', (err, auth_data) => {
         if(err){
@@ -43,6 +51,7 @@ const get_film_by_id = (request, response) => {
 }
 
 const create_film = (request, response) => {
+     if(valid_film(request.body)){
     jwt.verify(request.token, 'tintash', (err, auth_data) => {
         if(err){
             response.status(403).send("Access Denied")
@@ -54,10 +63,16 @@ const create_film = (request, response) => {
               if (error) {
                 throw error
               }
-              response.status(201).send(`Movie Title: ${request.body.title}`)
+              response.status(201).json({
+                                        title, year, description 
+                                         })
             })
         }           
     })
+}
+else {
+response.status(401).send("Invalid film details")
+}
 }
 
 const delete_film = (request, response) => {

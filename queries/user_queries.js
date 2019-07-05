@@ -59,7 +59,7 @@ const sign_up = (request, response) => {
                 else {
                     if(results.rows[0].count > 0) {
                         console.log(results.rows[0].count)
-                        response.status(409).send(`User with Email: ${request.body.email} already exists `)
+                        response.status(400).json({register: false, message: `User with Email: ${request.body.email} already exists`})
                     }
                     else {
                         bcrypt.hash(request.body.password, 10)
@@ -71,7 +71,7 @@ const sign_up = (request, response) => {
                                 throw db_error
                               }
                               console.log(request.body)
-                              response.status(201).send(`User added with ID: ${db_results.insertId}, ${request.body.name}`)
+                              response.status(201).json({register: true})
                             })
                         })
                     }
@@ -79,7 +79,7 @@ const sign_up = (request, response) => {
             })
     }
     else {
-        response.status(400).send("Invalid credentials" + request.body.email)
+        response.status(400).json({register: false, message: "Invalid user credentials. Try again!"})
     }
 }
 
@@ -170,7 +170,10 @@ const login = (request, response) => {
                                     throw jwt_error
                                 }
                                 response.status(200).json({
-                                    token: token
+                                    token: token,
+                                    name: results.rows[0].name,
+                                    email: results.rows[0].email,
+                                    login: true
                                 })
                             })
                             // console.log(response.cookie('user_id', results.rows[0].id))
@@ -179,18 +182,24 @@ const login = (request, response) => {
                         }
                         else {
                             console.log(hash_response, results.rows[0].password, request.body.password)
-                            response.status(400).json("Wrong password, please try again!")
+                            response.status(400).json({
+                                                  message: "Wrong password, please try again!",
+                                                  login: false})
                         }
                     })
                 }
                 else {
-                    response.status(200).send("Sorry, user not found")
+                    response.status(400).json({
+                                              message: "Sorry, user not found",
+                                              login: false})
                 }
             }
           })
     }
     else {
-        response.status(400).send("Invalid login credentials")
+        response.status(400).json({
+                                              message: "Invalid login credentials",
+                                              login: false})
     }
 }
 

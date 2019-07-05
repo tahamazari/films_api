@@ -1,12 +1,15 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
+const cors = require('cors')
 const port = 3000
 var cookieParser = require('cookie-parser')
 const users_router = require('./routes/user_routes.js')
 const films_router = require('./routes/film_routes.js')
 const ratings_router = require('./routes/rating_routes.js')
 
+
+app.use(cors())
 app.use(bodyParser.json())
 app.use(
   bodyParser.urlencoded({

@@ -1,6 +1,5 @@
 const express = require('express')
 const users_router = express.Router()
-const films_router = express.Router()
 const users_table = require('../queries/user_queries.js')
 const films_table = require('../queries/film_queries.js')
 const jwt = require('jsonwebtoken');

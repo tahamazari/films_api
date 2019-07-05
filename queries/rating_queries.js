@@ -46,19 +46,23 @@ const fetch_ratings_for_film = (request, response) => {
             response.status(403).send("Access Denied")
         }
         else {
-            const {film_id} = request.body
+            const id = Number(request.params.id)
 
-            pool.query('SELECT * FROM ratings WHERE film_id = $1', [film_id], (error, results) => {
+            pool.query('SELECT * FROM ratings WHERE film_id = $1', [id], (error, results) => {
                 if(error){
                     throw error
                 }
-        
+
                 const ratings = results.rows.map((value) => {
                     return value.rating
-                })        
+                })
+
+ 
+                let average = (ratings.reduce((total, val) => total + val) / ratings.length).toFixed(1)
+                console.log(average)
                 
                 response.status(200).json({
-                    ratings: ratings
+                    average: average
                 })
             })
         }           
@@ -78,6 +82,27 @@ const fetch_all_ratings = (request, response) => {
                 
                 response.status(200).send({
                     ratings: results.rows
+                })
+            })
+        }           
+    })
+}
+
+const fetch_average_ratings = (request, response) => {
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
+        }
+        else {
+            let id = request.params.id
+console.log(request.params)
+            pool.query('SELECT cast(avg(rating) as decimal(10,1)) FROM ratings where film_id = $1', [id], (error, results) => {
+                if(error){
+                    throw error
+                }
+                
+                response.status(200).json({
+                    average: results.rows[0].avg
                 })
             })
         }           
@@ -156,5 +181,6 @@ module.exports = {
     fetch_all_ratings,
     update_rating,
     delete_rating,
-    particular_rating
+    particular_rating,
+    fetch_average_ratings
 }

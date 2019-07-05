@@ -25,6 +25,7 @@ ratings_router.get('/api/ratings/fetch_all_ratings', verify_token, ratings_table
 ratings_router.put('/api/ratings/update_ratings/:id', verify_token, ratings_table.update_rating)
 ratings_router.delete('/api/ratings/delete_rating/:id', verify_token, ratings_table.delete_rating)
 ratings_router.get('/api/ratings/particular_rating/:id', verify_token, ratings_table.particular_rating)
+ratings_router.get('/api/ratings/average_rating/:id', verify_token, ratings_table.fetch_average_ratings)
 
 
 module.exports = ratings_router

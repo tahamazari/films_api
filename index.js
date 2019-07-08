@@ -9,6 +9,7 @@ const films_router = require('./routes/film_routes.js')
 const ratings_router = require('./routes/rating_routes.js')
 
 
+
 app.use(cors())
 app.use(bodyParser.json())
 app.use(

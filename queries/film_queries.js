@@ -116,11 +116,36 @@ const update_film = (request, response) => {
     })
 }
 
+const filter_search = (request, response) => {
+    jwt.verify(request.token, 'tintash', (err, auth_data) => {
+        if(err){
+            response.status(403).send("Access Denied")
+        }
+        else {
+          const select = "SELECT r.film_id as id, title, f.year, f.description, cast(avg(rating) as decimal(10,1))"
+          const join = " FROM films as f INNER JOIN ratings as r ON f.id = r.film_id" 
+          const group = " group by title, r.film_id, f.year, f.description"
+            const {minYear, maxYear, rating} = request.params
+            pool.query(
+              `${select} ${join} where year between $1 and $2 and rating >= $3 ${group}`,
+              [minYear, maxYear, rating],
+              (error, results) => {
+                if (error) {
+                  throw error
+                }
+                response.status(200).json({results: results.rows})
+              }
+            )
+        }           
+    })
+}
+
 module.exports = {
     get_films,
-    get_film_by_id,
+    // get_film_by_id,
     create_film,
     delete_film,
-    update_film
+    update_film,
+    filter_search
 }
 

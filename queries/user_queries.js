@@ -171,6 +171,7 @@ const login = (request, response) => {
                                 }
                                 response.status(200).json({
                                     token: token,
+                                    id: results.rows[0].id,
                                     name: results.rows[0].name,
                                     email: results.rows[0].email,
                                     login: true

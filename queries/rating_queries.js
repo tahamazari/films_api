@@ -24,17 +24,24 @@ const give_rating = (request, response) => {
         }
         else {
             const {film_id, user_id, rating} = request.body
+            pool.query('SELECT * FROM ratings WHERE film_id = $1 AND user_id = $2', [film_id, user_id], (err, result) => { 
+                if(err){
+                    throw err
+                }
+                else if(result.rows.length == 0){
+                    pool.query('INSERT INTO ratings(film_id, user_id, rating) VALUES($1, $2, $3)', [film_id, user_id, rating], (error, results) => {
+                        if(error){
+                            throw error
+                        }
+                        
+                        response.status(200).json({message: "Successfully rated this film"})
+                    })
+                }
 
-            pool.query('INSERT INTO ratings(film_id, user_id, rating) VALUES($1, $2, $3)', [film_id, user_id, rating], (error, results) => {
-                if(error){
-                    throw error
+                else {
+                    response.status(409).json({message: "You have already rated this film. Edit your previous rating instead!"})
                 }
                 
-                response.status(200).json({
-                    user_id: user_id,
-                    film_id: film_id,
-                    rating: rating
-                })
             })
         }           
     })
@@ -116,16 +123,16 @@ const update_rating = (request, response) => {
         }
         else {
             const id = parseInt(request.params.id)
-            const { rating } = request.body
+            const { rating, film_id } = request.body
           
             pool.query(
-              'UPDATE ratings SET rating = $1 WHERE user_id = $2',
-              [rating, id],
+              'UPDATE ratings SET rating = $1 WHERE user_id = $2 AND film_id = $3',
+              [rating, id, film_id],
               (error, results) => {
                 if (error) {
                   throw error
                 }
-                response.status(200).send(`Rating modified with ID: ${id}`)
+                response.status(200).json({message: `Your new rating for this film is : ${rating}`})
               }
             )
         }           

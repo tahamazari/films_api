@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 const cors = require('cors')
-const port = 3000
+const PORT = process.env.PORT || 3000
 var cookieParser = require('cookie-parser')
 const users_router = require('./routes/user_routes.js')
 const films_router = require('./routes/film_routes.js')
@@ -26,6 +26,6 @@ app.get('/', (request, response) => {
     response.json({ info: 'Node.js, Express, and Postgres API' })
 })
 
-app.listen(port, () => {
-    console.log(`App running on port ${port}.`)
+app.listen(PORT, () => {
+    console.log(`App running on port ${PORT}.`)
 })

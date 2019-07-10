@@ -8,18 +8,19 @@ const users_router = require('./routes/user_routes.js')
 const films_router = require('./routes/film_routes.js')
 const ratings_router = require('./routes/rating_routes.js')
 
-var whitelist = [
-  'https://react-spa-tintash.herokuapp.com',
-];
-var corsOptions = {
-  origin: function(origin, callback){
-      var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
-      callback(null, originIsWhitelisted);
-  },
-  credentials: true
-};
-app.use(cors(corsOptions));
+// var whitelist = [
+//   'https://react-spa-tintash.herokuapp.com',
+// ];
+// var corsOptions = {
+//   origin: function(origin, callback){
+//       var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+//       callback(null, originIsWhitelisted);
+//   },
+//   credentials: true
+// };
+// app.use(cors(corsOptions));
 
+app.use(cors())
 app.use(bodyParser.json())
 app.use(
   bodyParser.urlencoded({

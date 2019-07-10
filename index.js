@@ -23,6 +23,10 @@ app.use(films_router)
 app.use(ratings_router)
 
 
+app.use((request, response) => {
+  response.header("Access-Control-Allow-Origin", "*")
+})
+
 app.get('/', (request, response) => {
     response.json({ info: 'Node.js, Express, and Postgres API' })
 })

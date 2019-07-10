@@ -1,21 +1,13 @@
 const Pool = require('pg').Pool
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-// const pool = new Pool({
-//   user: 'nrgoqggosvxrhw',
-//   host: 'ec2-174-129-41-127.compute-1.amazonaws.com',
-//   database: 'dau95st8sst9b1',
-//   password: '03faee6488795156194c5d384a38e9fe8eaf62bf3d78642bcd8afdf1d98b31d0',
-//   port: 5432,
-// })
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'movies',
-    password: '1234',
-    port: 5432,
-  })
-
+  user: 'nrgoqggosvxrhw',
+  host: 'ec2-174-129-41-127.compute-1.amazonaws.com',
+  database: 'dau95st8sst9b1',
+  password: '03faee6488795156194c5d384a38e9fe8eaf62bf3d78642bcd8afdf1d98b31d0',
+  port: 5432,
+})
 
 
 //User functions

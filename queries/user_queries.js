@@ -58,9 +58,13 @@ class Users {
                     res.status(400).json({success: false, message: `User with email ${email} already exists`})
                 }
                 else {
-                    return models.user.create({name, email, password})
-                    .then(data => res.status(200).json({success: true, message: `User created with email ${email}`}))
-                    .catch(err => res.status(404).json({ success: false, message: "Error!"}))
+                    bcrypt.hash(password, 10)
+                    .then((hash) => {
+                        console.log(hash, password)
+                        return models.user.create({name, email, password: hash})
+                        .then(data => res.status(200).json({success: true, message: `User created with email ${email}`}))
+                        .catch(err => res.status(404).json({ success: false, message: "Error!"}))
+                    })
                 }
             })
             .catch(err => res.status(404).json({ success: false, message: "Error!"}))
@@ -107,23 +111,26 @@ class Users {
                     res.status(400).json({success: false, message: "Could not find user. Try signing up!"})
                 }
                 else {
-                    if(password != data.password){
-                        res.status(400).json({success: false, message: "Wrong Password!"})
-                    }
-                    else {
-                        jwt.sign({user: data}, 'tintash', (jwt_error, token) => {
-                            if(jwt_error) {
-                                throw jwt_error
-                            }
-                            res.status(200).json({
-                                token: token,
-                                id: data.id,
-                                name: data.name,
-                                email: data.email,
-                                login: true
+                    bcrypt.compare(password, data.password)
+                    .then((hash_response) => {
+                        if(hash_response){
+                            jwt.sign({user: data}, 'tintash', (jwt_error, token) => {
+                                if(jwt_error) {
+                                    throw jwt_error
+                                }
+                                res.status(200).json({
+                                    token: token,
+                                    id: data.id,
+                                    name: data.name,
+                                    email: data.email,
+                                    login: true
+                                })
                             })
-                        })
-                    }
+                        }
+                        else {
+                            res.status(400).json({success: false, message: "Wrong Password!"})
+                        }
+                    })
                 }
             })
             .catch(err => res.status(400).json({success: false, message: "Could not find user. Try signing up!"}))
@@ -282,11 +289,6 @@ const login = (request, response) => {
                     bcrypt.compare(request.body.password, results.rows[0].password)
                     .then(hash_response => {
                         if(hash_response){
-                            response.cookie('user_id', results.rows[0].id, {
-                                httpOnly: true,
-                                secure: true,
-                                signed: true
-                            })
 
                             jwt.sign({user: results.rows[0]}, 'tintash', (jwt_error, token) => {
                                 if(jwt_error) {

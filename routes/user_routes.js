@@ -34,7 +34,7 @@ users_router.post('/api/accounts/login', users_table.login)
 
 //Sequelize
 users_router.get('/api/test', verify_token, users_table.Users.getUsers)
-users_router.get('/api/test/:id', users_table.Users.getById)
+users_router.get('/api/test/:id', verify_token, users_table.Users.getById)
 users_router.post('/api/test/signUp', users_table.Users.signUp)
 users_router.put('/api/test/updateUser', users_table.Users.updateUser)
 users_router.put('/api/test/updatePassword', users_table.Users.updatePassword)

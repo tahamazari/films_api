@@ -18,27 +18,13 @@ const verify_token = (req, res, next) => {
     }
 }
 
-//USERS REQUESTS GO HERE
-//get all users
-users_router.get('/api/accounts', verify_token, users_table.get_users)
-//sign up
-users_router.post('/api/accounts/sign_up', users_table.sign_up)
-
-users_router.put('/api/accounts/update/:id', verify_token, users_table.update_user)
-users_router.put('/api/accounts/change_password/:id', verify_token, users_table.change_password)
-
-users_router.get('/api/accounts/:id', verify_token, users_table.get_user_by_id)
-
-users_router.post('/api/accounts/login', users_table.login)
-
-
 //Sequelize
-users_router.get('/api/test', verify_token, users_table.Users.getUsers)
-users_router.get('/api/test/:id', verify_token, users_table.Users.getById)
-users_router.post('/api/test/signUp', users_table.Users.signUp)
-users_router.put('/api/test/updateUser', users_table.Users.updateUser)
-users_router.put('/api/test/updatePassword', users_table.Users.updatePassword)
-users_router.post('/api/test/login', users_table.Users.login)
+users_router.get('/api/accounts', verify_token, users_table.Users.getUsers)
+users_router.get('/api/accounts/:id', verify_token, users_table.Users.getById)
+users_router.post('/api/accounts/signUp', users_table.Users.signUp)
+users_router.put('/api/accounts/updateUser', users_table.Users.updateUser)
+users_router.put('/api/accounts/updatePassword', users_table.Users.updatePassword)
+users_router.post('/api/accounts/login', users_table.Users.login)
 
 
 module.exports = users_router

@@ -7,113 +7,86 @@ const pool = new Pool({
   password: '03faee6488795156194c5d384a38e9fe8eaf62bf3d78642bcd8afdf1d98b31d0',
   port: 5432,
 })
+const models = require('../models/index')
+const Sequelize = require('sequelize');
 
 const valid_film = (film) => {
     if((typeof(film.title) == "string" && film.title.trim() != "") && (typeof(film.year) == "string" && film.year.trim() != "")
      && (typeof(film.description) == "string" && film.description.trim() != "")){
-      return user
+      return film
     }
     else return false
 }
 
-const get_films = (request, response) => {
-    jwt.verify(request.token, 'tintash', (err, auth_data) => {
-        if(err){
-            response.status(403).send("Access Denied")
-        }
-        else {
-            pool.query('SELECT * FROM films ORDER BY id ASC', (error, results) => {
-                if (error) {
-                  throw error
-                }
-                response.status(200).json(results.rows)
-            })
-        }           
-    })
-}
-
-const get_film_by_id = (request, response) => {
-    jwt.verify(request.token, 'tintash', (err, auth_data) => {
-        if(err){
-            response.status(403).send("Access Denied")
-        }
-        else {
-            const id = parseInt(request.params.id)
+class Films {
   
-            pool.query('SELECT * FROM films WHERE id = $1', [id], (error, results) => {
-              if (error) {
-                throw error
-              }
-              response.status(200).json(results.rows)
-            })
-        }           
-    })
-}
+  static createFilm(req, res) {
+    if(valid_film(req.body)){
+      console.log(req.body)
+      const {title, year, description} = req.body
+      return models.film.create({title, year, description})
+      .then((data) => {
+        res.status(200).json({success: true, message: `Film added with title ${title}`})
+      })
+      .catch(err => res.status(400).json({success: false, message: "Sorry! Film could not be created"})) 
+    }
+    else {
+      res.status(400).json({success: false, message: "Please enter valid film details"})
+    }
+  }
 
-const create_film = (request, response) => {
-     if(valid_film(request.body)){
-    jwt.verify(request.token, 'tintash', (err, auth_data) => {
-        if(err){
-            response.status(403).send("Access Denied")
-        }
-        else {
-            const { title, year, description } = request.body
-  
-            pool.query('INSERT INTO films(title, year, description) VALUES($1, $2, $3)', [title, year, description], (error, results) => {
-              if (error) {
-                throw error
-              }
-              response.status(201).json({
-                                        title, year, description 
-                                         })
-            })
-        }           
+  static getFilms(req, res){
+    return models.film.findAll()
+    .then((data) => {
+      res.status(200).json({success: true, message: "All films retrieved", data})
     })
-}
-else {
-response.status(401).send("Invalid film details")
-}
-}
+    .catch(err => res.status(400).json({success: false, message: "Could not retrieve films"}))
+  }
 
-const delete_film = (request, response) => {
-    jwt.verify(request.token, 'tintash', (err, auth_data) => {
-        if(err){
-            response.status(403).send("Access Denied")
-        }
-        else {
-            const id = parseInt(request.params.id)
-  
-            pool.query('DELETE FROM films WHERE id = $1', [id], (error, results) => {
-              if (error) {
-                throw error
-              }
-              response.status(200).send(`Film deleted with ID: ${id}`)
-            })
-        }           
-    })
-}
+  static getFilmById(req, res){
+    const {id} = req.params
+    return models.film.findByPk(id)
+    .then(data => res.status(200).json({success: true, message: `Film with Id: ${id} retrieved`, data}))
+    .catch(err => res.status(400).json({success: false, message: `Could not get film with Id: ${id}`}))
+  }
 
-const update_film = (request, response) => {
-    jwt.verify(request.token, 'tintash', (err, auth_data) => {
-        if(err){
-            response.status(403).send("Access Denied")
-        }
-        else {
-            const id = parseInt(request.params.id)
-            const { title, year, description } = request.body
-          
-            pool.query(
-              'UPDATE films SET title = $1, year = $2, description = $3 WHERE id = $4',
-              [title, year, description, id],
-              (error, results) => {
-                if (error) {
-                  throw error
-                }
-                response.status(200).send(`Film modified with ID: ${id}`)
-              }
-            )
-        }           
+  static deleteFilm(req, res){
+    const {id} = req.params
+    return models.film.destroy({where: {id: id}})
+    .then(data => res.status(200).json({success: true, message: `Film with Id: ${id} deleted`}))
+    .catch(err => res.status(400).json({success: false, message: `Could not delete film with Id: ${id}`}))
+  }
+
+  static updateFilm(req, res){
+    const {title, year, description} = req.body
+    const {id} = req.params
+    return models.film.update({title, year, description}, {where: {id}})
+    .then(() => res.status(200).json({success: true, message: `Film edited with Id: ${id}`}))
+    .catch(err => res.status(400).json({success: false, message: `Could not delete film with Id: ${id}`}))
+  }
+
+  static filterSearch(req, res){
+    const {minYear, maxYear} = req.body
+    return models.film.findAll({
+        attributes: ['id', 'title', 'year', 'description'],
+        where: {
+          year: {
+            [Sequelize.Op.between]: [minYear, maxYear]
+          }
+        },
+        include: [{
+          model: models.rating,
+          required: true,
+          attributes: ['rating'],
+          raw: true,
+        }],
+        // group: [['title']]
     })
+    .then(data => {
+      res.status(200).json({success: true, message: "Your data", data})
+    })
+    .catch(err => res.status(400).json({success: false, message: `Could not fetch requested data`}))
+  }
 }
 
 const filter_search = (request, response) => {
@@ -141,11 +114,7 @@ const filter_search = (request, response) => {
 }
 
 module.exports = {
-    get_films,
-    // get_film_by_id,
-    create_film,
-    delete_film,
-    update_film,
-    filter_search
+    filter_search,
+    Films
 }
 

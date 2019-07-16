@@ -1,4 +1,6 @@
 'use strict';
+const rating = require('./index')
+
 module.exports = (sequelize, DataTypes) => {
   const film = sequelize.define('film', {
     title: DataTypes.STRING,
@@ -6,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     year: DataTypes.DATE
   }, {});
   film.associate = function(models) {
-    // associations can be defined here
+    film.hasMany(models.rating, {foreignKey: 'film_id', sourceKey: 'id'})
   };
   return film;
 };

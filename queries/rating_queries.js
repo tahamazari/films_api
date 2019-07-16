@@ -7,6 +7,8 @@ const pool = new Pool({
     password: '03faee6488795156194c5d384a38e9fe8eaf62bf3d78642bcd8afdf1d98b31d0',
     port: 5432,
   })
+const models = require('../models/index')
+const Sequelize = require('sequelize');
 
 // jwt.verify(request.token, 'tintash', (err, auth_data) => {
 //     if(err){
@@ -16,6 +18,70 @@ const pool = new Pool({
         
 //     }           
 // })
+
+class Ratings {
+    static rateFilm(req, res){
+        const {user_id, film_id, rating} = req.body
+        return models.rating.findOne({where: {user_id, film_id}})
+        .then((data) => {
+            console.log(data)
+            if(data == null){
+                return models.rating.create({user_id, film_id, rating})
+                .then((rateData) => {
+                    res.status(200).json({success: true, message: `Film with id: ${film_id} rated by user with id: ${user_id}`, rateData})
+                })
+                .catch(err => res.status(400).json({success: false, message: "Sorry could not rate film"}))
+            }
+            else {
+                res.status(400).json({success: false, message: "You have already rated this film. Edit your previous rating instead!"})
+            }
+        })
+        .catch(err => res.status(400).json({success: false, message: "Sorry could not rate film"}))
+    }
+
+    static ratingsOfFilm(req, res){
+        const {id} = req.params
+        return models.rating.findOne({where: {film_id: id}})
+        .then((data) => {
+            if(data != null){
+                res.status(200).json({success: true, message: `Fetched all ratings for film with Id: ${id}`, data})
+            }
+            else {
+                res.status(400).json({success: true, message: `No ratings for film with Id: ${id}`})
+            }
+        })
+        .catch(err => res.status(400).json({success: false, message: "Sorry could not fetch ratings for your film"}))
+    }
+
+    static allRatings(req, res){
+        return models.rating.findAll()
+        .then(data => {
+            res.status(200).json({success: true, message: `Fetched all ratings`, data})
+        })
+        .catch(err => res.status(400).json({success: false, message: "Sorry, no ratings found"}))
+    }
+
+    static updateRating(req, res){
+        const {user_id, film_id, rating} = req.body
+        return models.rating.update({rating}, {where: {user_id, film_id}})
+        .then(data => {
+            res.status(200).json({success: true, message: `Film rating updated for User: ${user_id} and Film: ${film_id}`})
+        })
+        .catch(err => res.status(400).json({success: false, message: "Sorry, can't edit rating at the moment"}))
+    }
+
+    static averageFilmRatings(req,res){
+        const {film_id} = req.params
+        return models.rating.findAll({
+            attributes: [[Sequelize.fn('avg', Sequelize.col('rating')), 'average']],
+            raw: true,
+        })
+        .then(data => {
+            res.status(200).json({success: true, message: `Fetched average ratings for film with Id: ${film_id}`, data:  parseInt(data[0].average).toFixed(2)})
+        })
+        .catch(err => res.status(400).json({success: false, message: `Sorry, couldn't fetch average ratings for film with Id: ${film_id}`}))
+    }
+}
 
 const give_rating = (request, response) => {
     jwt.verify(request.token, 'tintash', (err, auth_data) => {
@@ -189,5 +255,6 @@ module.exports = {
     update_rating,
     delete_rating,
     particular_rating,
-    fetch_average_ratings
+    fetch_average_ratings,
+    Ratings
 }
